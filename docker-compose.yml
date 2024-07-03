@@ -8,3 +8,9 @@ services:
       - 8002:8002
     volumes:
       - .:/app
+    networks:
+      - services-network
+
+networks:
+  services-network:
+    external: true
