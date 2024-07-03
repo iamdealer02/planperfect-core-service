@@ -5,19 +5,12 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - 8000:8000
+      - 8002:8002
     volumes:
       - .:/app
-    depends_on:
-      - db
+    networks:
+      - services-network
 
-  db:
-    image: mysql:latest
-    restart: always
-    environment:
-      MYSQL_DATABASE: user
-      MYSQL_ROOT_PASSWORD : root
-    volumes:
-      - .dbdata:/var/lib/mysql
-    ports:
-      - 33066:3306
+networks:
+  services-network:
+    external: true
