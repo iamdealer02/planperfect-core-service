@@ -2,7 +2,7 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from .serializers import ProjectServiceSerializer
 from .models import ProjectService
-from .connector import ProjectServiceConnector, ProjectTeamServiceConnector
+from .connector import ProjectServiceConnector, ProjectTeamServiceConnector, ProjectTasksServiceConnector
 from django.urls import path
 from rest_framework.decorators import action
 
@@ -44,7 +44,7 @@ class ProjectServiceViewSet(viewsets.ModelViewSet):
         try:
             return Response(response.json(), status=response.status_code)
         except ValueError:
-            return Response({'message': 'Invalid response format'}, status=response.status_code)
+            return Response({'message': 'Invalid response format', 'error': str(response)}, status=response.status_code)
 
 class ProjectTeamServiceViewSet(viewsets.ModelViewSet):
     queryset = ProjectService.objects.all()
@@ -93,3 +93,50 @@ class ProjectTeamServiceViewSet(viewsets.ModelViewSet):
             path('<pk>/delete-member/<mid>/', self.delete_member, name='team-delete-member'),
         ]
         return urls + custom_urls 
+    
+class ProjectTasksServiceViewSet(viewsets.ModelViewSet):
+    queryset = ProjectService.objects.all()
+    serializer_class = ProjectServiceSerializer
+
+    @action(detail=True, methods=['post'])
+    def create_task(self, request,project_id , *args, **kwargs):
+        connector = ProjectTasksServiceConnector()
+        headers = dict(request.headers)
+        response = connector.create_project_task(project_id,request.data, headers)
+        return self.handle_response(response)
+    
+    @action(detail=True, methods=['get'])
+    def list_tasks(self, request,project_id, *args, **kwargs):
+        connector = ProjectTasksServiceConnector()
+        headers = dict(request.headers)
+        response = connector.get_project_tasks(project_id, headers)
+        return self.handle_response(response)
+    
+    @action(detail=True, methods=['get'])
+    def get_task(self, request,project_id, task_id, *args, **kwargs):
+        connector = ProjectTasksServiceConnector()
+        headers = dict(request.headers)
+        response = connector.get_project_task(project_id, task_id, headers)
+        return self.handle_response(response)
+    
+    @action(detail=True, methods=['put'])
+    def update_task(self, request,project_id, task_id, *args, **kwargs):
+        connector = ProjectTasksServiceConnector()
+        headers = dict(request.headers)
+        response = connector.update_project_task(project_id, task_id, request.data, headers)
+        return self.handle_response(response)
+    
+    @action(detail=True, methods=['delete'])
+    def delete_task(self, request,project_id, task_id, *args, **kwargs):
+        connector = ProjectTasksServiceConnector()
+        headers = dict(request.headers)
+        response = connector.delete_project_task(project_id, task_id, headers)
+        return Response(status=response.status_code, data=response.json())
+    
+    def handle_response(self, response):
+        try:
+            return Response(response.json(), status=response.status_code)
+        except ValueError:
+            return Response({'message': 'Invalid response format', 'error': str(response)}, status=response.status_code)
+
+        
