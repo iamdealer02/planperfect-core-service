@@ -1,23 +1,24 @@
 import requests
 
 class UserServiceConnector:
+    service_url = None
+
     def __init__(self):
-        self.url = 'http://userservice-backend-1:8000/user/'
+        if not UserServiceConnector.service_url:
+            response = requests.get('http://servicediscovery-backend-1:8003/service/discover/userservice').json()
+            UserServiceConnector.service_url = response['address']
+        
+        self.url = UserServiceConnector.service_url + 'user/'
 
-    def send_ping(self, endpoint:str):
+    def send_ping(self, endpoint: str):
         response = requests.get(url=endpoint)
+        return response.status_code == 200
 
-        if response.status_code == 200:
-            return True
-        else:
-            return False 
-    # registering users /users/register
     def register_user(self, data):
-        response = requests.post(url=self.url+'register/', data=data)
+        response = requests.post(url=self.url + 'register/', data=data)
         return response
-    
+
     def login_user(self, data):
-        response = requests.post(url=self.url+'login/', data=data)
+        print(self.url)
+        response = requests.post(url=self.url + 'login/', data=data)
         return response
-    
-    
